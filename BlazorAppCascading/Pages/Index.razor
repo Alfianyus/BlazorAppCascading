@@ -19,7 +19,10 @@
         </div>
         <div class="col-md-2">
             <label>Country</label>
-            <select id="ddlCountry" class="form-control" value="@employee.CountryId">
+            <select id="ddlCountry" class="form-control" value="@employee.CountryId" @onchange="@((ChangeEventArgs e)=>{
+                employee.CountryId=Convert.ToInt32(e.Value);
+                OnDropDownChange(employee,"Country");
+                })">
             @foreach(var item in masterCountry)
             {
                 <option value="@item.Id">@item.Name</option>
@@ -28,7 +31,10 @@
         </div>
         <div class="col-md-2">
             <label>State</label>
-            <select id="ddlCountry" class="form-control" value="@employee.StateId">
+            <select id="ddlState" class="form-control" value="@employee.StateId" @onchange="@((ChangeEventArgs e)=>{
+                employee.StateId=Convert.ToInt32(e.Value);
+                OnDropDownChange(employee,"State");
+                })">
                 @foreach (var item in masterState.Where(x => x.CountryId == employee.CountryId || x.CountryId == 0).ToList())
                 {
                     <option value="@item.Id">@item.Name</option>
@@ -37,7 +43,10 @@
         </div>
         <div class="col-md-2">
             <label>City</label>
-            <select id="ddlCountry" class="form-control" value="@employee.CityId">
+            <select id="ddlCountry" class="form-control" value="@employee.CityId" @onchange="@((ChangeEventArgs e)=>{
+                employee.CityId=Convert.ToInt32(e.Value);
+               
+                })">
                 @foreach (var item in masterCity.Where(x => x.StateId == employee.StateId||x.StateId == 0).ToList())
                 {
                     <option value="@item.Id">@item.Name</option>
@@ -45,10 +54,35 @@
             </select>
         </div>
         <div class="col-md-2">
-            <input type="button" class="btn btn-primary" value="Add"/>
+        
         </div>
 
     </div>   
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Country</th>
+                <th>State</th>
+                <th>City</th>
+            </tr>
+        </thead>
+        <tbody>
+                @foreach (var (index, emp) in employeeList.Select((emp, i)=>(i+1,emp)))
+                {
+                    <tr>
+                        <td>
+                            <input @bind="emp.Name" class="form-control"></input>
+                        </td>
+
+                    </tr>
+                
+            }
+
+        </tbody>
+    </table>
 }
 
 @code{
@@ -80,6 +114,43 @@
         masterCountry.Insert(0, new Country { Id = 0, Name = "-SelectCountry-" });
         masterState.Insert(0, new State { Id = 0, Name = "-SelectState-", CountryId = 0 });
         masterCity.Insert(0, new City { Id = 0, Name = "-SelectCity-", StateId = 0 });
+
+        GetEmployees();
+    }
+
+    public void OnDropDownChange(EmployeeInfo model, string type)
+    {
+        if(type == "Country")
+        {
+            model.StateId = 0;
+            model.CityId = 0;
+        }
+
+        if(type == "State")
+        {
+            model.CityId = 0;
+        }
+
+    }
+
+    private void AddnewRecord()
+    {
+        dbContext.EmployeeInfos.Add(employee);
+        dbContext.SaveChanges();
+
+        employee.Name = string.Empty;
+        employee.MobileNumber = string.Empty;
+        employee.CountryId = 0;
+        employee.StateId = 0;
+        employee.CityId = 0;
+
+        GetEmployees();
+    }
+
+    private void GetEmployees()
+    {
+        employeeList = new List<EmployeeInfo>();
+        employeeList = dbContext.EmployeeInfos.ToList();
     }
 
 }
