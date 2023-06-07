@@ -1,0 +1,85 @@
+﻿@page "/"
+@using DbModels;
+@inject DemoDbContext dbContext;
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world!</h1>
+
+@if(employee!=null)
+{
+    <div class="row">
+        <div class="col-md-2">
+            <label>Name</label>
+            <input @bind="employee.Name" class="form-control"/>
+        </div>
+        <div class="col-md-2">
+            <label>Mobile</label>
+            <input @bind="employee.MobileNumber" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label>Country</label>
+            <select id="ddlCountry" class="form-control" value="@employee.CountryId">
+            @foreach(var item in masterCountry)
+            {
+                <option value="@item.Id">@item.Name</option>
+            }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label>State</label>
+            <select id="ddlCountry" class="form-control" value="@employee.StateId">
+                @foreach (var item in masterState.Where(x => x.CountryId == employee.CountryId || x.CountryId == 0).ToList())
+                {
+                    <option value="@item.Id">@item.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label>City</label>
+            <select id="ddlCountry" class="form-control" value="@employee.CityId">
+                @foreach (var item in masterCity.Where(x => x.StateId == employee.StateId||x.StateId == 0).ToList())
+                {
+                    <option value="@item.Id">@item.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="button" class="btn btn-primary" value="Add"/>
+        </div>
+
+    </div>   
+}
+
+@code{
+    private List<EmployeeInfo> employeeList = new List<EmployeeInfo > ();
+    private EmployeeInfo employee = new EmployeeInfo();
+
+    public List<Country> masterCountry = new List<Country>();
+    public List<State> masterState = new List<State>();
+    public List<City> masterCity = new List<City>();
+
+    public string message = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        employee.CountryId = 0;
+        employee.StateId = 0;
+        employee.CityId = 0;
+        GetMasterData();
+        base.OnInitialized();
+    }
+
+    public void GetMasterData()
+    {
+        masterCountry = dbContext.Countries.ToList();
+        masterState = dbContext.States.ToList();
+        masterCity = dbContext.Cities.ToList();
+
+
+        masterCountry.Insert(0, new Country { Id = 0, Name = "-SelectCountry-" });
+        masterState.Insert(0, new State { Id = 0, Name = "-SelectState-", CountryId = 0 });
+        masterCity.Insert(0, new City { Id = 0, Name = "-SelectCity-", StateId = 0 });
+    }
+
+}
